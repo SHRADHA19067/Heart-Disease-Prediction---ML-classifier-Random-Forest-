@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart Disease Risk Assessment Report</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px 0;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Heart-themed background elements */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(255, 182, 193, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255, 105, 180, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(255, 20, 147, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 90% 20%, rgba(220, 20, 60, 0.1) 0%, transparent 50%);
+            z-index: -1;
+            animation: heartbeat 4s ease-in-out infinite;
+        }
+        
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        /* Floating heart icons */
+        .heart-bg {
+            position: fixed;
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.1);
+            animation: float 6s ease-in-out infinite;
+            z-index: -1;
+        }
+        
+        .heart-bg:nth-child(1) { top: 10%; left: 10%; animation-delay: 0s; }
+        .heart-bg:nth-child(2) { top: 20%; right: 15%; animation-delay: 1s; }
+        .heart-bg:nth-child(3) { top: 60%; left: 5%; animation-delay: 2s; }
+        .heart-bg:nth-child(4) { top: 80%; right: 10%; animation-delay: 3s; }
+        .heart-bg:nth-child(5) { top: 40%; left: 80%; animation-delay: 4s; }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.1; }
+            50% { transform: translateY(-20px) rotate(180deg); opacity: 0.3; }
+        }
+        
+        .report-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            margin: 0 auto;
+            max-width: 1400px;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #ef5350 0%, #f44336 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .content-section {
+            padding: 40px;
+        }
+        
+        .risk-badge {
+            background: #ef5350;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            display: inline-block;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transform: translateY(-5px);
+            transition: all 0.3s ease;
+        }
+        
+        .risk-badge:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 15px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 182, 193, 0.1) 0%, transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.1; }
+            50% { transform: scale(1.1); opacity: 0.3; }
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .chart-container::after {
+            content: '❤️';
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.2rem;
+            opacity: 0.3;
+            animation: heartbeat 2s ease-in-out infinite;
+        }
+        
+        .section-title {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+        
+        .insights-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .btn-download {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+        }
+        
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            color: white;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating heart background elements -->
+    <div class="heart-bg">❤️</div>
+    <div class="heart-bg">💖</div>
+    <div class="heart-bg">💝</div>
+    <div class="heart-bg">💕</div>
+    <div class="heart-bg">💗</div>
+    
+    <div class="report-container">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-heartbeat me-3"></i>Heart Disease Risk Assessment Report</h1>
+            <p>Comprehensive Analysis with Advanced Visualizations</p>
+            <div class="risk-badge">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                HIGH RISK DETECTED
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content-section">
+            <!-- Risk Assessment Summary -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="metric-card">
+                        <h3><i class="fas fa-chart-line me-2"></i>Risk Assessment</h3>
+                        <div class="row">
+                            <div class="col-6">
+                                <h4 class="text-danger">High Risk</h4>
+                                <p class="text-muted">Risk Level</p>
+                            </div>
+                            <div class="col-6">
+                                <h4 class="text-danger">85.2%</h4>
+                                <p class="text-muted">Probability</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="metric-card">
+                        <h3><i class="fas fa-brain me-2"></i>Model Confidence</h3>
+                        <div class="row">
+                            <div class="col-6">
+                                <h4 class="text-success">93.44%</h4>
+                                <p class="text-muted">Accuracy</p>
+                            </div>
+                            <div class="col-6">
+                                <h4 class="text-info">High</h4>
+                                <p class="text-muted">Confidence</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhanced Visualizations Section -->
+            <div class="section-title mt-5">
+                <i class="fas fa-chart-bar me-2"></i>Comprehensive Data Analysis
+            </div>
+
+            <!-- Correlation Heatmap -->
+            <div class="chart-container">
+                <h4><i class="fas fa-fire me-2"></i>Feature Correlation Heatmap</h4>
+                <div id="correlation-heatmap" style="height: 500px;"></div>
+            </div>
+
+            <!-- Age Distribution Bar Chart -->
+            <div class="chart-container">
+                <h4><i class="fas fa-chart-bar me-2"></i>Age Distribution Analysis</h4>
+                <div id="age-distribution-bar" style="height: 400px;"></div>
+            </div>
+
+            <!-- Cholesterol Distribution Bar Chart -->
+            <div class="chart-container">
+                <h4><i class="fas fa-chart-bar me-2"></i>Cholesterol Distribution Analysis</h4>
+                <div id="cholesterol-distribution-bar" style="height: 400px;"></div>
+            </div>
+
+            <!-- Enhanced Scatter Plot -->
+            <div class="chart-container">
+                <h4><i class="fas fa-scatter-chart me-2"></i>Multi-Variable Correlation Analysis</h4>
+                <div id="enhanced-scatter" style="height: 600px;"></div>
+            </div>
+
+            <!-- Blood Pressure vs Vessels -->
+            <div class="chart-container">
+                <h4><i class="fas fa-chart-line me-2"></i>Blood Pressure vs Vessel Analysis</h4>
+                <div id="bp-vessels-chart" style="height: 400px;"></div>
+            </div>
+
+            <!-- Age vs Cholesterol -->
+            <div class="chart-container">
+                <h4><i class="fas fa-chart-line me-2"></i>Age vs Cholesterol Correlation</h4>
+                <div id="age-cholesterol-chart" style="height: 400px;"></div>
+            </div>
+
+            <!-- Heart Rate vs Exercise -->
+            <div class="chart-container">
+                <h4><i class="fas fa-chart-line me-2"></i>Heart Rate vs Exercise Analysis</h4>
+                <div id="heart-rate-exercise-chart" style="height: 400px;"></div>
+            </div>
+
+            <!-- Risk Factors Dashboard -->
+            <div class="chart-container">
+                <h4><i class="fas fa-dashboard me-2"></i>Risk Factors Dashboard</h4>
+                <div id="risk-factors-dashboard" style="height: 500px;"></div>
+            </div>
+
+            <!-- Insights Section -->
+            <div class="insights-card">
+                <h3><i class="fas fa-lightbulb me-2"></i>Key Insights</h3>
+                <ul>
+                    <li>Your age group shows a higher prevalence of heart disease</li>
+                    <li>Cholesterol levels are in the elevated range</li>
+                    <li>Blood pressure readings indicate hypertension risk</li>
+                    <li>Exercise capacity is below optimal levels</li>
+                    <li>Multiple risk factors are present simultaneously</li>
+                </ul>
+            </div>
+
+            <!-- Recommendations -->
+            <div class="metric-card">
+                <h3><i class="fas fa-clipboard-list me-2"></i>Recommendations</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-heartbeat text-danger me-2"></i>Immediate Actions</h5>
+                        <ul>
+                            <li>Schedule a cardiologist appointment</li>
+                            <li>Monitor blood pressure daily</li>
+                            <li>Start cholesterol-lowering diet</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-dumbbell text-success me-2"></i>Lifestyle Changes</h5>
+                        <ul>
+                            <li>Begin regular exercise program</li>
+                            <li>Adopt heart-healthy diet</li>
+                            <li>Quit smoking if applicable</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Download Buttons -->
+            <div class="text-center mt-4">
+                <a href="#" class="btn-download" onclick="window.print()">
+                    <i class="fas fa-print me-2"></i>Print Report
+                </a>
+                <a href="#" class="btn-download">
+                    <i class="fas fa-download me-2"></i>Download PDF
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data for visualizations (replace with actual data from backend)
+        const sampleData = {
+            correlation: {
+                z: [[1, 0.3, 0.5, 0.2], [0.3, 1, 0.4, 0.1], [0.5, 0.4, 1, 0.6], [0.2, 0.1, 0.6, 1]],
+                x: ['Age', 'Cholesterol', 'Blood Pressure', 'Heart Rate'],
+                y: ['Age', 'Cholesterol', 'Blood Pressure', 'Heart Rate']
+            },
+            ageDistribution: {
+                x: ['20-29', '30-39', '40-49', '50-59', '60-69', '70-79', '80+'],
+                healthy: [15, 25, 35, 45, 30, 20, 10],
+                disease: [5, 15, 25, 35, 40, 30, 15]
+            },
+            cholesterolDistribution: {
+                x: ['100-149', '150-199', '200-249', '250-299', '300-349', '350-399', '400+'],
+                healthy: [20, 35, 40, 25, 15, 10, 5],
+                disease: [10, 20, 30, 35, 25, 20, 15]
+            }
+        };
+
+        // Initialize charts when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Correlation Heatmap
+            const heatmapData = [{
+                z: sampleData.correlation.z,
+                x: sampleData.correlation.x,
+                y: sampleData.correlation.y,
+                type: 'heatmap',
+                colorscale: 'RdBu',
+                zmid: 0
+            }];
+            
+            Plotly.newPlot('correlation-heatmap', heatmapData, {
+                title: 'Feature Correlation Matrix',
+                width: null,
+                height: null
+            });
+
+            // Age Distribution Bar Chart
+            const ageBarData = [
+                {
+                    x: sampleData.ageDistribution.x,
+                    y: sampleData.ageDistribution.healthy,
+                    name: 'Healthy Patients',
+                    type: 'bar',
+                    marker: {color: 'rgba(46, 204, 113, 0.8)'}
+                },
+                {
+                    x: sampleData.ageDistribution.x,
+                    y: sampleData.ageDistribution.disease,
+                    name: 'Heart Disease Patients',
+                    type: 'bar',
+                    marker: {color: 'rgba(231, 76, 60, 0.8)'}
+                }
+            ];
+            
+            Plotly.newPlot('age-distribution-bar', ageBarData, {
+                title: 'Age Distribution by Heart Disease Status',
+                barmode: 'group',
+                xaxis: {title: 'Age Groups'},
+                yaxis: {title: 'Number of Patients'}
+            });
+
+            // Cholesterol Distribution Bar Chart
+            const cholBarData = [
+                {
+                    x: sampleData.cholesterolDistribution.x,
+                    y: sampleData.cholesterolDistribution.healthy,
+                    name: 'Healthy Patients',
+                    type: 'bar',
+                    marker: {color: 'rgba(46, 204, 113, 0.8)'}
+                },
+                {
+                    x: sampleData.cholesterolDistribution.x,
+                    y: sampleData.cholesterolDistribution.disease,
+                    name: 'Heart Disease Patients',
+                    type: 'bar',
+                    marker: {color: 'rgba(231, 76, 60, 0.8)'}
+                }
+            ];
+            
+            Plotly.newPlot('cholesterol-distribution-bar', cholBarData, {
+                title: 'Cholesterol Distribution by Heart Disease Status',
+                barmode: 'group',
+                xaxis: {title: 'Cholesterol Levels (mg/dl)'},
+                yaxis: {title: 'Number of Patients'}
+            });
+
+            // Enhanced Scatter Plot (Multi-variable)
+            const scatterData = [
+                {
+                    x: [25, 30, 35, 40, 45, 50, 55, 60, 65, 70],
+                    y: [180, 200, 220, 240, 260, 280, 300, 320, 340, 360],
+                    mode: 'markers',
+                    name: 'Healthy',
+                    marker: {color: 'rgba(46, 204, 113, 0.7)', size: 8}
+                },
+                {
+                    x: [30, 35, 40, 45, 50, 55, 60, 65, 70, 75],
+                    y: [220, 240, 260, 280, 300, 320, 340, 360, 380, 400],
+                    mode: 'markers',
+                    name: 'Heart Disease',
+                    marker: {color: 'rgba(231, 76, 60, 0.7)', size: 8, symbol: 'diamond'}
+                }
+            ];
+            
+            Plotly.newPlot('enhanced-scatter', scatterData, {
+                title: 'Age vs Cholesterol Correlation',
+                xaxis: {title: 'Age (years)'},
+                yaxis: {title: 'Cholesterol (mg/dl)'}
+            });
+
+            // Additional charts would be loaded here with actual data from the backend
+            // For now, we'll create placeholder charts
+            const placeholderData = [{
+                x: [1, 2, 3, 4, 5],
+                y: [10, 20, 30, 40, 50],
+                type: 'scatter',
+                mode: 'lines+markers'
+            }];
+            
+            Plotly.newPlot('bp-vessels-chart', placeholderData, {title: 'Blood Pressure vs Vessels'});
+            Plotly.newPlot('age-cholesterol-chart', placeholderData, {title: 'Age vs Cholesterol'});
+            Plotly.newPlot('heart-rate-exercise-chart', placeholderData, {title: 'Heart Rate vs Exercise'});
+            Plotly.newPlot('risk-factors-dashboard', placeholderData, {title: 'Risk Factors Dashboard'});
+        });
+    </script>
+</body>
+</html>
+        

@@ -1,0 +1,413 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart Disease Risk Assessment Report</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        
+        .report-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            margin: 0 auto;
+            max-width: 1400px;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #00d4aa 0%, #00bcd4 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .content-section {
+            padding: 40px;
+        }
+        
+        .risk-badge {
+            background: #00d4aa;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            display: inline-block;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transform: translateY(-5px);
+            transition: all 0.3s ease;
+        }
+        
+        .risk-badge:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 15px 0;
+            border-left: 5px solid #00d4aa;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        
+        .chart-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+        
+        .recommendation-card {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 2px solid #ffc107;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 5px 20px rgba(255, 193, 7, 0.2);
+        }
+        
+        .section-title {
+            color: #2c3e50;
+            border-bottom: 3px solid #00d4aa;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #00d4aa;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .insight-item {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #00d4aa;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .footer {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .glow {
+            box-shadow: 0 0 20px #00d4aa40;
+        }
+    </style>
+</head>
+<body>
+    <div class="report-container">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-heartbeat pulse"></i> Heart Disease Risk Assessment</h1>
+            <p>Comprehensive Analysis Report • Generated on August 03, 2025 at 03:44 PM</p>
+        </div>
+
+        <!-- Executive Summary -->
+        <div class="content-section">
+            <h2 class="section-title">
+                <i class="fas fa-chart-line me-3"></i>Executive Summary
+            </h2>
+            
+            <div class="row">
+                <div class="col-lg-4 text-center">
+                    <div class="risk-badge glow">
+                        LOW RISK
+                    </div>
+                    <div class="mt-4">
+                        <span class="stat-number">15.0%</span>
+                        <span class="stat-label">Risk Probability</span>
+                    </div>
+                    <div class="mt-2">
+                        <span class="stat-number">85.0%</span>
+                        <span class="stat-label">Model Confidence</span>
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="metric-card">
+                                <h5><i class="fas fa-user me-2"></i>Patient Profile</h5>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <p><strong>Age:</strong> 30 years</p>
+                                        <p><strong>Gender:</strong> Female</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <p><strong>Blood Pressure:</strong> 110 mmHg</p>
+                                        <p><strong>Cholesterol:</strong> 180 mg/dl</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="metric-card">
+                                <h5><i class="fas fa-heartbeat me-2"></i>Vital Signs</h5>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <p><strong>Max Heart Rate:</strong> 180 bpm</p>
+                                        <p><strong>Chest Pain:</strong> 0/3</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <p><strong>ST Depression:</strong> 0.0 mm</p>
+                                        <p><strong>Vessels Blocked:</strong> 0/3</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Visualizations -->
+        <div class="content-section" style="background: #f8f9fa;">
+            <h2 class="section-title">
+                <i class="fas fa-chart-bar me-3"></i>Interactive Analysis
+            </h2>
+            
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="chart-container">
+                        <h5><i class="fas fa-chart-pie me-2"></i>Your Risk Factor Profile</h5>
+                        <div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.0.1.min.js" integrity="sha256-oy6Be7Eh6eiQFs5M7oXuPxxm9qbJXEtTpfSI93dW16Q=" crossorigin="anonymous"></script>                <div id="c69fcdc4-a30b-4b8d-a347-ea8b698d8087" class="plotly-graph-div" style="height:400px; width:600px;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("c69fcdc4-a30b-4b8d-a347-ea8b698d8087")) {                    Plotly.newPlot(                        "c69fcdc4-a30b-4b8d-a347-ea8b698d8087",                        [{"hovertemplate":"\u003cb\u003e%{x}\u003c\u002fb\u003e\u003cbr\u003eRisk Level: %{y:.1f}%\u003cextra\u003e\u003c\u002fextra\u003e","marker":{"color":["#00d4aa","#ffa726","#ef5350","#42a5f5","#ab47bc"]},"text":["37.5%","55.0%","45.0%","81.8%","0.0%"],"textfont":{"color":"white","size":12},"textposition":"auto","x":["Age","Blood Pressure","Cholesterol","Max Heart Rate","Blocked Vessels"],"y":[37.5,55.00000000000001,45.0,81.81818181818183,0.0],"type":"bar"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"title":{"font":{"size":18,"color":"#2c3e50"},"text":"Your Risk Factor Profile","x":0.5,"xanchor":"center"},"yaxis":{"title":{"text":"Risk Level (%)"},"range":[0,110]},"font":{"color":"#2c3e50"},"margin":{"l":50,"r":50,"t":80,"b":50},"xaxis":{"title":{"text":"Risk Factors"}},"width":600,"height":400,"plot_bgcolor":"rgba(0,0,0,0)","paper_bgcolor":"rgba(0,0,0,0)","showlegend":false},                        {"responsive": true}                    )                };            </script>        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="chart-container">
+                        <h5><i class="fas fa-chart-line me-2"></i>Feature Correlations</h5>
+                        <div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.0.1.min.js" integrity="sha256-oy6Be7Eh6eiQFs5M7oXuPxxm9qbJXEtTpfSI93dW16Q=" crossorigin="anonymous"></script>                <div id="b78215cc-8cf7-4054-aa70-cd5fa01c0ca1" class="plotly-graph-div" style="height:500px; width:600px;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("b78215cc-8cf7-4054-aa70-cd5fa01c0ca1")) {                    Plotly.newPlot(                        "b78215cc-8cf7-4054-aa70-cd5fa01c0ca1",                        [{"colorscale":[[0.0,"#440154"],[0.1111111111111111,"#482878"],[0.2222222222222222,"#3e4989"],[0.3333333333333333,"#31688e"],[0.4444444444444444,"#26828e"],[0.5555555555555556,"#1f9e89"],[0.6666666666666666,"#35b779"],[0.7777777777777778,"#6ece58"],[0.8888888888888888,"#b5de2b"],[1.0,"#fde725"]],"hoverinfo":"z+text","hoverongaps":false,"text":{"dtype":"f8","bdata":"AAAAAAAA8D+amZmZmZm5v5qZmZmZmbk\u002f7FG4HoXr0T\u002fhehSuR+HKP7gehetRuL4\u002fMzMzMzMzwz\u002f2KFyPwvXYvwrXo3A9Crc\u002fmpmZmZmZyT97FK5H4XrEPwrXo3A9Ctc\u002fpHA9CtejwD8pXI\u002fC9SjMP5qZmZmZmbm\u002fAAAAAAAA8D97FK5H4XqEP7gehetRuK6\u002fmpmZmZmZyb+amZmZmZmpP3sUrkfhepQ\u002fmpmZmZmZqb8zMzMzMzPDP5qZmZmZmbk\u002fexSuR+F6pD8K16NwPQq3P1K4HoXrUdg\u002f7FG4HoXr0T+amZmZmZm5P3sUrkfheoQ\u002fAAAAAAAA8D97FK5H4Xqkv+xRuB6F67E\u002fexSuR+F6pL\u002fsUbgeheuxPx+F61G4HtW\u002fUrgehetR2D+amZmZmZnJPzMzMzMzM8M\u002fcT0K16NwzT9I4XoUrkfRPz0K16NwPdo\u002f7FG4HoXr0T+4HoXrUbiuv3sUrkfheqS\u002fAAAAAAAA8D+kcD0K16PAPwrXo3A9Csc\u002fMzMzMzMzwz+amZmZmZmpv7gehetRuK4\u002fUrgehetRyD+4HoXrUbi+P5qZmZmZmbk\u002fpHA9CtejwD8zMzMzMzPDP+F6FK5H4co\u002fmpmZmZmZyb\u002fsUbgeheuxP6RwPQrXo8A\u002fAAAAAAAA8D97FK5H4XqEP8P1KFyPwsU\u002fAAAAAAAAAIC4HoXrUbiuP5qZmZmZmak\u002fAAAAAAAAAIC4HoXrUbi+P3sUrkfheoQ\u002fCtejcD0Ktz+4HoXrUbi+P5qZmZmZmak\u002fexSuR+F6pL8K16NwPQrHP3sUrkfheoQ\u002fAAAAAAAA8D\u002fsUbgeheuxP3sUrkfheoS\u002fuB6F61G4nj97FK5H4XqEP7gehetRuK4\u002fMzMzMzMzwz\u002fsUbgeheuxP7gehetRuJ4\u002fMzMzMzMzwz97FK5H4XqUP+xRuB6F67E\u002fMzMzMzMzwz\u002fD9Shcj8LFP+xRuB6F67E\u002fAAAAAAAA8D97FK5H4Xq0v3sUrkfherQ\u002fKVyPwvUovD+kcD0K16PAP6RwPQrXo8A\u002fexSuR+F6lD\u002fD9Shcj8LFP\u002fYoXI\u002fC9di\u002fmpmZmZmZqb8fhetRuB7Vv5qZmZmZmam\u002fAAAAAAAAAIB7FK5H4XqEv3sUrkfherS\u002fAAAAAAAA8D9SuB6F61HYv8P1KFyPwtW\u002f9ihcj8L12L+kcD0K16PQv+xRuB6F69G\u002f4XoUrkfh2r8K16NwPQq3PzMzMzMzM8M\u002fUrgehetR2D+4HoXrUbiuP7gehetRuK4\u002fuB6F61G4nj97FK5H4Xq0P1K4HoXrUdi\u002fAAAAAAAA8D+PwvUoXI\u002fSP6RwPQrXo9A\u002fMzMzMzMzwz8fhetRuB7VP4XrUbgehds\u002fmpmZmZmZyT+amZmZmZm5P5qZmZmZmck\u002fUrgehetRyD+amZmZmZmpP3sUrkfheoQ\u002fKVyPwvUovD\u002fD9Shcj8LVv4\u002fC9Shcj9I\u002fAAAAAAAA8D+PwvUoXI\u002fiPzMzMzMzM9M\u002fw\u002fUoXI\u002fC1T\u002fhehSuR+HaP3sUrkfhesQ\u002fexSuR+F6pD8zMzMzMzPDP7gehetRuL4\u002fAAAAAAAAAIC4HoXrUbiuP6RwPQrXo8A\u002f9ihcj8L12L+kcD0K16PQP4\u002fC9Shcj+I\u002fAAAAAAAA8D8pXI\u002fC9Si8P4\u002fC9Shcj9I\u002fw\u002fUoXI\u002fC1T8K16NwPQrXPwrXo3A9Crc\u002fcT0K16NwzT+amZmZmZm5P7gehetRuL4\u002fMzMzMzMzwz+kcD0K16PAP6RwPQrXo9C\u002fMzMzMzMzwz8zMzMzMzPTPylcj8L1KLw\u002fAAAAAAAA8D+kcD0K16PQP3E9CtejcN0\u002fpHA9CtejwD9SuB6F61HYP0jhehSuR9E\u002fpHA9CtejwD97FK5H4XqEP+xRuB6F67E\u002fexSuR+F6lD\u002fsUbgehevRvx+F61G4HtU\u002fw\u002fUoXI\u002fC1T+PwvUoXI\u002fSP6RwPQrXo9A\u002fAAAAAAAA8D\u002f2KFyPwvXgPylcj8L1KMw\u002f7FG4HoXr0T89CtejcD3aPzMzMzMzM8M\u002fCtejcD0Ktz+4HoXrUbieP8P1KFyPwsU\u002f4XoUrkfh2r+F61G4HoXbP+F6FK5H4do\u002fw\u002fUoXI\u002fC1T9xPQrXo3DdP\u002fYoXI\u002fC9eA\u002fAAAAAAAA8D8=","shape":"14, 14"},"textfont":{"color":"white","size":11},"texttemplate":"%{text}","x":["age","sex","cp","trestbps","chol","fbs","restecg","thalach","exang","oldpeak","slope","ca","thal","target"],"y":["age","sex","cp","trestbps","chol","fbs","restecg","thalach","exang","oldpeak","slope","ca","thal","target"],"z":{"dtype":"f8","bdata":"AAAAAAAA8D81G8\u002f2h\u002fi4v+D6HrvZqLo\u002fWy4lz4080j\u002fntfTn4b7KPx+o6Hn\u002fV74\u002f7SqX3RcOwz9dDWxEHTTZvwib8I8Ud7c\u002ftsemSkwWyj9bR6tp3bTEP5DdV53pNNc\u002fjkmyNUVOwD+3emKwNI\u002fMPzUbz\u002faH+Li\u002fAAAAAAAA8D9GhTCR3KaEPw1zvoUugLC\u002fiIrn582Wyb\u002f7eopJYoGoP1XyIFS5KpY\u002f4P+RRWXqqL9hgnr1urbCP8cZ94X8J7o\u002fIPZKhYI3oz+kFjzT9Nq3P2cONbJAYdg\u002f0M55yFu30T\u002fg+h672ai6P0aFMJHcpoQ\u002fAAAAAAAA8D\u002fj8Z14t3iiv34wHIt9g7I\u002fsGDFEZp3pL9eEHzeBUixPxO4dkwqZ9W\u002fRhRdaG6U2D99qUSbMuTJPzfNh1djdsM\u002fRnCBRfjZzT+9tzaLyPnQP9DdfyRKhto\u002fWy4lz4080j8Nc76FLoCwv+PxnXi3eKK\u002fAAAAAAAA8D8+mEOVxqfAP6y8DG6MccY\u002fkDykon3Cwj8Ju2D\u002fOjinv+L0nrRFlLA\u002fENJyHsE2yD+PDmIxuAy+P9ZCx0Q0Sbk\u002ffXOgSksYwT\u002fx2bSSP07DP+e19Ofhvso\u002fiIrn582Wyb9+MByLfYOyPz6YQ5XGp8A\u002fAAAAAAAA8D9PAgzBhyeEP73JkMC45MU\u002fz2VUhBIdbL9XCknfEmSvP1MTZzU816c\u002fr5tjTCSjcL+zaDTg0Ha+P0EKBJVDHI0\u002fZy7FTUjNtT8fqOh5\u002f1e+P\u002ft6ikligag\u002fsGDFEZp3pL+svAxujHHGP08CDMGHJ4Q\u002fAAAAAAAA8D\u002fTZO2X+s6xP+Hd67jVFYC\u002fH0iF3\u002fZHmj8y5dSMZop3P5HO9CFzqq4\u002fmDie6AGfwj9ECeIXiUSyPx9JwP233pk\u002f7SqX3RcOwz9V8iBUuSqWP14QfN4FSLE\u002fkDykon3Cwj+9yZDAuOTFP9Nk7Zf6zrE\u002fAAAAAAAA8D+Thb2GAlm1v0c3VzLXubU\u002f+1Yh3M43vT+BaVfiISXBP69YFzSIbcA\u002fkAiVUa0emT+FvaBMaKjFP10NbEQdNNm\u002f4P+RRWXqqL8TuHZMKmfVvwm7YP86OKe\u002fz2VUhBIdbL\u002fh3eu41RWAv5OFvYYCWbW\u002fAAAAAAAA8D+FiqK02DLYvww4bm4c9dW\u002f1GAbf7Ct2L83CcIdaenQv5FQdvB35dG\u002fvJFgs9yy2r8Im\u002fCPFHe3P2GCevW6tsI\u002fRhRdaG6U2D\u002fi9J60RZSwP1cKSd8SZK8\u002fH0iF3\u002fZHmj9HN1cy17m1P4WKorTYMti\u002fAAAAAAAA8D9v2VgTPnLSP5TNWwPzftA\u002fVa1+Vgaiwj\u002f9i5oiehnVP\u002fUSlK0mpNs\u002ftsemSkwWyj\u002fHGfeF\u002fCe6P32pRJsy5Mk\u002fENJyHsE2yD9TE2c1PNenPzLl1Ixminc\u002f+1Yh3M43vT8MOG5uHPXVv2\u002fZWBM+ctI\u002fAAAAAAAA8D+rzYJ9LnviP8gDUNLp7tI\u002fRetzYALT1T+WXpHCLCvbP1tHq2ndtMQ\u002fIPZKhYI3oz83zYdXY3bDP48OYjG4DL4\u002fr5tjTCSjcL+RzvQhc6quP4FpV+IhJcE\u002f1GAbf7Ct2L+UzVsD837QP6vNgn0ue+I\u002fAAAAAAAA8D+4GSxpxTC8PwjS\u002fkMCYtI\u002fULuWHKu11T+Q3Ved6TTXP6QWPNP02rc\u002fRnCBRfjZzT\u002fWQsdENEm5P7NoNODQdr4\u002fmDie6AGfwj+vWBc0iG3APzcJwh1p6dC\u002fVa1+Vgaiwj\u002fIA1DS6e7SP7gZLGnFMLw\u002fAAAAAAAA8D+\u002fdFIkkmjQP3e5OtHjd90\u002fjkmyNUVOwD9nDjWyQGHYP723NovI+dA\u002ffXOgSksYwT9BCgSVQxyNP0QJ4heJRLI\u002fkAiVUa0emT+RUHbwd+XRv\u002f2LmiJ6GdU\u002fRetzYALT1T8I0v5DAmLSP790UiSSaNA\u002fAAAAAAAA8D9BKlphctLgP7d6YrA0j8w\u002f0M55yFu30T\u002fQ3X8kSobaP\u002fHZtJI\u002fTsM\u002fZy7FTUjNtT8fScD9t96ZP4W9oExoqMU\u002fvJFgs9yy2r\u002f1EpStJqTbP5ZekcIsK9s\u002fULuWHKu11T93uTrR43fdP0EqWmFy0uA\u002fAAAAAAAA8D8=","shape":"14, 14"},"zmid":0,"type":"heatmap"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"title":{"font":{"size":18,"color":"#2c3e50"},"text":"Feature Correlation Matrix","x":0.5,"xanchor":"center"},"font":{"color":"#2c3e50"},"margin":{"l":50,"r":50,"t":80,"b":50},"width":600,"height":500,"xaxis":{"title":{"text":"Features"}},"yaxis":{"title":{"text":"Features"}},"plot_bgcolor":"rgba(0,0,0,0)","paper_bgcolor":"rgba(0,0,0,0)"},                        {"responsive": true}                    )                };            </script>        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="chart-container">
+                        <h5><i class="fas fa-chart-scatter me-2"></i>Blood Pressure vs Blocked Vessels</h5>
+                        <div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.0.1.min.js" integrity="sha256-oy6Be7Eh6eiQFs5M7oXuPxxm9qbJXEtTpfSI93dW16Q=" crossorigin="anonymous"></script>                <div id="6e5d66e5-de52-41b1-a7e6-65cb127391ee" class="plotly-graph-div" style="height:400px; width:600px;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("6e5d66e5-de52-41b1-a7e6-65cb127391ee")) {                    Plotly.newPlot(                        "6e5d66e5-de52-41b1-a7e6-65cb127391ee",                        [{"hovertemplate":"\u003cb\u003eBP:\u003c\u002fb\u003e %{x} mmHg\u003cbr\u003e\u003cb\u003eVessels:\u003c\u002fb\u003e %{y}\u003cbr\u003e\u003cb\u003eDisease:\u003c\u002fb\u003e %{marker.color}\u003cextra\u003e\u003c\u002fextra\u003e","marker":{"color":{"dtype":"i1","bdata":"AAEBAAAAAQABAQAAAQAAAAEAAAAAAAEBAQAAAAABAAEBAAAAAQEBAAEAAAABAQABAAAAAAEAAQEBAQAAAQABAAEBAQABAQABAQEBAAEAAAEAAAABAAAAAAAAAAEAAAABAQEAAAAAAAABAAEBAQEBAQABAQAAAAEBAQEAAQEAAQEAAAAAAAAAAAEBAQAAAQABAAEBAAAAAAAAAQEBAQEBAAABAAAAAAAAAQABAAEAAQEAAQAAAQEAAAEAAAEBAQABAQEAAQAAAAEAAAAAAAEBAQABAAEAAQEAAAAAAAAAAAEBAAAAAQEAAQEAAAEBAQAAAAAAAQABAQEBAAABAAAAAAAAAAEAAQAAAQEBAQEAAQABAAEAAAABAAEAAQABAQEAAAABAAEBAQABAQEBAQEA"},"colorbar":{"title":{"text":"Heart Disease"}},"colorscale":[[0.0,"#440154"],[0.1111111111111111,"#482878"],[0.2222222222222222,"#3e4989"],[0.3333333333333333,"#31688e"],[0.4444444444444444,"#26828e"],[0.5555555555555556,"#1f9e89"],[0.6666666666666666,"#35b779"],[0.7777777777777778,"#6ece58"],[0.8888888888888888,"#b5de2b"],[1.0,"#fde725"]],"opacity":0.7,"showscale":true,"size":8},"mode":"markers","name":"Dataset","x":{"dtype":"f8","bdata":"AAAAAAAgYkAAAAAAAABkQAAAAAAAAF5AAAAAAABAYEAAAAAAAEBgQAAAAAAAAF5AAAAAAACAYUAAAAAAAABeQAAAAAAAQGBAAAAAAACAYUAAAAAAAIBhQAAAAAAAgGFAAAAAAABAYEAAAAAAAABeQAAAAAAAgGVAAAAAAADAYkAAAAAAAIBbQAAAAAAAgGFAAAAAAABAYEAAAAAAAEBgQAAAAAAAgFtAAAAAAADAYkAAAAAAAABeQAAAAAAAgGBAAAAAAABAYEAAAAAAAABeQAAAAAAAAF5AAAAAAADAYkAAAAAAAMBiQAAAAAAAgFtAAAAAAACAYUAAAAAAAEBdQAAAAAAAgGFAAAAAAADgYEAAAAAAAEBgQAAAAAAAgGFAAAAAAAAAXkAAAAAAAMBiQAAAAAAAgGBAAAAAAADAYkAAAAAAAMBiQAAAAAAAgGFAAAAAAAAAZEAAAAAAAMBiQAAAAAAAQGBAAAAAAAAAXEAAAAAAAIBbQAAAAAAAwGJAAAAAAACAYUAAAAAAAEBgQAAAAAAAQFpAAAAAAAAAXkAAAAAAAABcQAAAAAAAQGBAAAAAAABAYEAAAAAAAABfQAAAAAAAgGFAAAAAAACAW0AAAAAAAEBfQAAAAAAAQF9AAAAAAABAYEAAAAAAAMBhQAAAAAAAAGBAAAAAAADgYEAAAAAAAABeQAAAAAAAIGJAAAAAAACAYUAAAAAAAMBiQAAAAAAAQGVAAAAAAADAYkAAAAAAAGBjQAAAAAAAQF9AAAAAAAAAXkAAAAAAAIBbQAAAAAAAgFtAAAAAAAAAZEAAAAAAAEBfQAAAAAAAgGFAAAAAAABAYEAAAAAAAMBiQAAAAAAAAFpAAAAAAABAYEAAAAAAAIBhQAAAAAAAgGZAAAAAAAAAXkAAAAAAAIBhQAAAAAAAQGFAAAAAAAAAYEAAAAAAAEBhQAAAAAAAQGBAAAAAAAAAXkAAAAAAAABkQAAAAAAAQGBAAAAAAAAAW0AAAAAAAOBgQAAAAAAAAGBAAAAAAACAW0AAAAAAAMBiQAAAAAAAwGBAAAAAAACAXkAAAAAAAMBcQAAAAAAAgF1AAAAAAAAAYEAAAAAAAIBbQAAAAAAAAF5AAAAAAAAAW0AAAAAAAIBhQAAAAAAAAGBAAAAAAAAAXkAAAAAAAIBdQAAAAAAAIGJAAAAAAABAX0AAAAAAAIBdQAAAAAAAgGBAAAAAAABAYEAAAAAAAOBgQAAAAAAAgGFAAAAAAABAYUAAAAAAAEBgQAAAAAAA4GBAAAAAAABAYEAAAAAAAMBiQAAAAAAAAFlAAAAAAACAYUAAAAAAAEBhQAAAAAAAQGBAAAAAAAAAaUAAAAAAAIBbQAAAAAAAAF5AAAAAAAAAX0AAAAAAAABeQAAAAAAAgFdAAAAAAABAYEAAAAAAAIBhQAAAAAAAgF5AAAAAAADgYEAAAAAAACBiQAAAAAAAAF5AAAAAAAAAXkAAAAAAAEBfQAAAAAAAgGFAAAAAAABAZUAAAAAAAABgQAAAAAAAQF9AAAAAAABAWkAAAAAAAABbQAAAAAAAoGRAAAAAAAAAXEAAAAAAAABgQAAAAAAAgFlAAAAAAAAAY0AAAAAAAIBZQAAAAAAAwFxAAAAAAAAAZEAAAAAAAABeQAAAAAAAQGBAAAAAAACAYUAAAAAAAEBfQAAAAAAAgGFAAAAAAACAXUAAAAAAAEBZQAAAAAAAQF9AAAAAAACAW0AAAAAAAABZQAAAAAAAAF9AAAAAAACAYEAAAAAAAEBhQAAAAAAAgGBAAAAAAACAX0AAAAAAAABcQAAAAAAAAGRAAAAAAADAYUAAAAAAAMBlQAAAAAAAgGFAAAAAAAAgYkAAAAAAAABjQAAAAAAAAFtAAAAAAACAYEAAAAAAAEBgQAAAAAAAQGBAAAAAAAAAX0AAAAAAAMBgQAAAAAAAgGJAAAAAAABAZkAAAAAAAMBjQAAAAAAAgGFAAAAAAAAAXkAAAAAAAABkQAAAAAAAAGhAAAAAAACAYUAAAAAAACBgQAAAAAAAgGFAAAAAAACAYEAAAAAAAEBhQAAAAAAAAF5AAAAAAAAAWUAAAAAAAABkQAAAAAAAQGFAAAAAAAAAXkAAAAAAAABkQAAAAAAAgFtAAAAAAACAZkAAAAAAAMBiQAAAAAAAgGFAAAAAAACAW0AAAAAAAMBhQAAAAAAAAGBAAAAAAAAAYkAAAAAAAEBgQAAAAAAAwGJAAAAAAAAAXkAAAAAAAABeQAAAAAAAQGBAAAAAAABAZkAAAAAAAABcQAAAAAAAAF5AAAAAAABAWkAAAAAAAEBhQAAAAAAAQGBAAAAAAABAYUAAAAAAAABcQAAAAAAAAFtAAAAAAACAV0AAAAAAAMBeQAAAAAAAAFtAAAAAAACAXUAAAAAAAABcQAAAAAAAAGNAAAAAAACAW0AAAAAAAABcQAAAAAAAAGFAAAAAAACAZkAAAAAAAIBdQAAAAAAAAF5AAAAAAAAAZEAAAAAAAIBeQAAAAAAAQGBAAAAAAAAAXkAAAAAAAMBgQAAAAAAAAF5AAAAAAACAW0AAAAAAAIBfQAAAAAAAQGBAAAAAAADAYEAAAAAAAABeQAAAAAAAAF5AAAAAAAAAWUAAAAAAAIBbQAAAAAAAQF9AAAAAAAAAYEAAAAAAAIBbQAAAAAAAQGJAAAAAAAAAYEAAAAAAAABeQAAAAAAAwFxAAAAAAAAAXkAAAAAAAIBaQAAAAAAAgGFAAAAAAACAY0AAAAAAAABfQAAAAAAAgF1AAAAAAAAAYUAAAAAAAMBiQAAAAAAAAF5AAAAAAABAYUAAAAAAAABhQAAAAAAAAGBAAAAAAACAX0AAAAAAAABjQAAAAAAAQGBAAAAAAACAYUAAAAAAAABkQAAAAAAAgGFAAAAAAAAAXEAAAAAAAMBgQAAAAAAAQGVAAAAAAABAYkAAAAAAAEBhQAAAAAAAQGNAAAAAAABAYEAAAAAAAIBbQAAAAAAAQGBAAAAAAAAAYEAAAAAAAIBeQAAAAAAAgGJAAAAAAACAXEAAAAAAAEBlQAAAAAAAQF9AAAAAAABAYEAAAAAAAABeQAAAAAAAAGNAAAAAAACAYEAAAAAAAABeQAAAAAAAgGFAAAAAAAAAX0AAAAAAAABeQAAAAAAAgGRAAAAAAACAYUAAAAAAAIBbQAAAAAAAAGJAAAAAAABAYEAAAAAAAEBgQAAAAAAAQGFA"},"y":{"dtype":"f8","bdata":"AAAAAAAAAAAAAAAAAAAIQAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAPA\u002fAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8D8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADwPwAAAAAAAPA\u002fAAAAAAAAAAAAAAAAAAAIQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8D8AAAAAAAAAAAAAAAAAAAAAAAAAAAAA8D8AAAAAAAAAAAAAAAAAAPA\u002fAAAAAAAAAAAAAAAAAADwPwAAAAAAAAAAAAAAAAAA8D8AAAAAAADwPwAAAAAAAPA\u002fAAAAAAAAAAAAAAAAAADwPwAAAAAAAPA\u002fAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAhAAAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAPA\u002fAAAAAAAAAAAAAAAAAADwPwAAAAAAAPA\u002fAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIQAAAAAAAAAhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPA\u002fAAAAAAAA8D8AAAAAAAAAQAAAAAAAAPA\u002fAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8D8AAAAAAADwPwAAAAAAAAhAAAAAAAAAAAAAAAAAAADwPwAAAAAAAPA\u002fAAAAAAAA8D8AAAAAAAAAAAAAAAAAAAAAAAAAAAAA8D8AAAAAAAAAAAAAAAAAAAAAAAAAAAAA8D8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIQAAAAAAAAPA\u002fAAAAAAAAAEAAAAAAAAAIQAAAAAAAAAAAAAAAAAAAAAAAAAAAAADwPwAAAAAAAAAAAAAAAAAAAEAAAAAAAADwPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPA\u002fAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPA\u002fAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPA\u002fAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8D8AAAAAAADwPwAAAAAAAAhAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAABAAAAAAAAA8D8AAAAAAAAAAAAAAAAAAAhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAD4fwAAAAAAAPA\u002fAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPA\u002fAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAADwPwAAAAAAAAhAAAAAAAAA8D8AAAAAAADwPwAAAAAAAAhAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAIQAAAAAAAAPA\u002fAAAAAAAACEAAAAAAAAAAAAAAAAAAAAhAAAAAAAAA+H8AAAAAAAAIQAAAAAAAAAAAAAAAAAAAAEAAAAAAAADwPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADwPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIQAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAADwPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPA\u002fAAAAAAAA8D8AAAAAAADwPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIQAAAAAAAAPA\u002fAAAAAAAA8D8AAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8D8AAAAAAADwPwAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPA\u002fAAAAAAAA8D8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPA\u002fAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8D8AAAAAAAAAAAAAAAAAAAAAAAAAAAAA8D8AAAAAAAAAAAAAAAAAAAAAAAAAAAAA8D8AAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAA8D8AAAAAAAAAAAAAAAAAAPA\u002fAAAAAAAAAAAAAAAAAADwPwAAAAAAAAAAAAAAAAAA8D8AAAAAAAAAAAAAAAAAAPA\u002fAAAAAAAACEAAAAAAAAAAQAAAAAAAAPh\u002fAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAA8D8AAAAAAADwPwAAAAAAAPh\u002f"},"type":"scatter"},{"hovertemplate":"\u003cb\u003eYour BP:\u003c\u002fb\u003e %{x} mmHg\u003cbr\u003e\u003cb\u003eYour Vessels:\u003c\u002fb\u003e %{y}\u003cextra\u003e\u003c\u002fextra\u003e","marker":{"color":"#ef5350","line":{"color":"white","width":2},"size":15,"symbol":"star"},"mode":"markers","name":"Your Data","x":[110],"y":[0],"type":"scatter"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"title":{"font":{"size":18,"color":"#2c3e50"},"text":"Blood Pressure vs Blocked Vessels","x":0.5,"xanchor":"center"},"font":{"color":"#2c3e50"},"margin":{"l":50,"r":50,"t":80,"b":50},"legend":{"yanchor":"top","y":0.99,"xanchor":"left","x":0.01},"xaxis":{"title":{"text":"Blood Pressure (mmHg)"}},"yaxis":{"title":{"text":"Number of Blocked Vessels"}},"width":600,"height":400,"plot_bgcolor":"rgba(0,0,0,0)","paper_bgcolor":"rgba(0,0,0,0)","showlegend":true},                        {"responsive": true}                    )                };            </script>        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="chart-container">
+                        <h5><i class="fas fa-chart-scatter me-2"></i>Age vs Cholesterol Analysis</h5>
+                        <div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.0.1.min.js" integrity="sha256-oy6Be7Eh6eiQFs5M7oXuPxxm9qbJXEtTpfSI93dW16Q=" crossorigin="anonymous"></script>                <div id="d8847bb4-19d4-4345-a8e3-6e27d51c9b61" class="plotly-graph-div" style="height:400px; width:600px;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("d8847bb4-19d4-4345-a8e3-6e27d51c9b61")) {                    Plotly.newPlot(                        "d8847bb4-19d4-4345-a8e3-6e27d51c9b61",                        [{"hovertemplate":"\u003cb\u003eAge:\u003c\u002fb\u003e %{x} years\u003cbr\u003e\u003cb\u003eCholesterol:\u003c\u002fb\u003e %{y} mg\u002fdl\u003cbr\u003e\u003cb\u003eDisease:\u003c\u002fb\u003e %{marker.color}\u003cextra\u003e\u003c\u002fextra\u003e","marker":{"color":{"dtype":"i1","bdata":"AAEBAAAAAQABAQAAAQAAAAEAAAAAAAEBAQAAAAABAAEBAAAAAQEBAAEAAAABAQABAAAAAAEAAQEBAQAAAQABAAEBAQABAQABAQEBAAEAAAEAAAABAAAAAAAAAAEAAAABAQEAAAAAAAABAAEBAQEBAQABAQAAAAEBAQEAAQEAAQEAAAAAAAAAAAEBAQAAAQABAAEBAAAAAAAAAQEBAQEBAAABAAAAAAAAAQABAAEAAQEAAQAAAQEAAAEAAAEBAQABAQEAAQAAAAEAAAAAAAEBAQABAAEAAQEAAAAAAAAAAAEBAAAAAQEAAQEAAAEBAQAAAAAAAQABAQEBAAABAAAAAAAAAAEAAQAAAQEBAQEAAQABAAEAAAABAAEAAQABAQEAAAABAAEBAQABAQEBAQEA"},"colorbar":{"title":{"text":"Heart Disease"}},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"opacity":0.7,"showscale":true,"size":8},"mode":"markers","name":"Dataset","x":{"dtype":"f8","bdata":"AAAAAACAT0AAAAAAAMBQQAAAAAAAwFBAAAAAAACAQkAAAAAAAIBEQAAAAAAAAExAAAAAAAAAT0AAAAAAAIBMQAAAAAAAgE9AAAAAAACASkAAAAAAAIBMQAAAAAAAAExAAAAAAAAATEAAAAAAAABGQAAAAAAAAEpAAAAAAACATEAAAAAAAABIQAAAAAAAAEtAAAAAAAAASEAAAAAAAIBIQAAAAAAAAFBAAAAAAAAATUAAAAAAAABNQAAAAAAAAE1AAAAAAAAATkAAAAAAAABJQAAAAAAAAE1AAAAAAACAUEAAAAAAAIBFQAAAAAAAAERAAAAAAABAUUAAAAAAAABOQAAAAAAAAFBAAAAAAACATUAAAAAAAABGQAAAAAAAAEVAAAAAAACARUAAAAAAAIBMQAAAAAAAgEtAAAAAAACATkAAAAAAAEBQQAAAAAAAAERAAAAAAADAUUAAAAAAAIBNQAAAAAAAgE5AAAAAAAAATUAAAAAAAIBJQAAAAAAAAElAAAAAAABAUEAAAAAAAIBKQAAAAAAAgERAAAAAAABAUEAAAAAAAABGQAAAAAAAAEZAAAAAAAAATkAAAAAAAABLQAAAAAAAAElAAAAAAACAREAAAAAAAABLQAAAAAAAgElAAAAAAACASUAAAAAAAABHQAAAAAAAAE1AAAAAAAAAS0AAAAAAAABLQAAAAAAAAE5AAAAAAAAATkAAAAAAAABLQAAAAAAAgE1AAAAAAAAAR0AAAAAAAEBQQAAAAAAAwFBAAAAAAAAAT0AAAAAAAEBQQAAAAAAAAEZAAAAAAABAUEAAAAAAAABOQAAAAAAAgElAAAAAAAAASEAAAAAAAABNQAAAAAAAgEZAAAAAAACASkAAAAAAAIBDQAAAAAAAAFFAAAAAAAAASkAAAAAAAABGQAAAAAAAgEdAAAAAAACASkAAAAAAAIBKQAAAAAAAgElAAAAAAACAUEAAAAAAAABPQAAAAAAAAE9AAAAAAAAARkAAAAAAAIBPQAAAAAAAAEpAAAAAAACATUAAAAAAAABOQAAAAAAAAEpAAAAAAAAASEAAAAAAAIBGQAAAAAAAAEFAAAAAAACATEAAAAAAAMBRQAAAAAAAgEhAAAAAAAAAS0AAAAAAAIBNQAAAAAAAgExAAAAAAACATkAAAAAAAIBDQAAAAAAAgE5AAAAAAAAATEAAAAAAAABKQAAAAAAAgEVAAAAAAAAAT0AAAAAAAIBEQAAAAAAAAE1AAAAAAACAQUAAAAAAAIBPQAAAAAAAQFBAAAAAAAAASEAAAAAAAIBPQAAAAAAAgElAAAAAAACAS0AAAAAAAEBQQAAAAAAAgEZAAAAAAAAATEAAAAAAAABLQAAAAAAAAEZAAAAAAAAAT0AAAAAAAABLQAAAAAAAgElAAAAAAAAAPUAAAAAAAIBJQAAAAAAAgEVAAAAAAACAS0AAAAAAAIBRQAAAAAAAAE9AAAAAAACAQUAAAAAAAIBJQAAAAAAAgE1AAAAAAACATUAAAAAAAABKQAAAAAAAAFBAAAAAAAAATUAAAAAAAIBHQAAAAAAAgExAAAAAAACAREAAAAAAAIBGQAAAAAAAAE5AAAAAAAAASkAAAAAAAABFQAAAAAAAwFBAAAAAAACAS0AAAAAAAABQQAAAAAAAgFFAAAAAAACASUAAAAAAAABNQAAAAAAAAE5AAAAAAAAAUUAAAAAAAABHQAAAAAAAQFNAAAAAAAAAS0AAAAAAAABNQAAAAAAAAEhAAAAAAACATEAAAAAAAABKQAAAAAAAAEtAAAAAAACAQUAAAAAAAIBGQAAAAAAAgFFAAAAAAACASkAAAAAAAIBNQAAAAAAAAE9AAAAAAAAAUEAAAAAAAIBMQAAAAAAAAEpAAAAAAAAATEAAAAAAAIBFQAAAAAAAgEpAAAAAAAAASEAAAAAAAABMQAAAAAAAAEVAAAAAAACATUAAAAAAAABOQAAAAAAAgE9AAAAAAAAARUAAAAAAAIBQQAAAAAAAAEtAAAAAAABAUUAAAAAAAABJQAAAAAAAgElAAAAAAACARUAAAAAAAABPQAAAAAAAAFFAAAAAAADAUEAAAAAAAEBRQAAAAAAAgEZAAAAAAAAASUAAAAAAAIBNQAAAAAAAAElAAAAAAAAAUEAAAAAAAIBMQAAAAAAAAFBAAAAAAACARUAAAAAAAIBGQAAAAAAAAE1AAAAAAAAASUAAAAAAAIBLQAAAAAAAAE9AAAAAAACAQkAAAAAAAABDQAAAAAAAgERAAAAAAACAUEAAAAAAAABKQAAAAAAAAExAAAAAAAAAR0AAAAAAAABHQAAAAAAAAFBAAAAAAACATUAAAAAAAIBEQAAAAAAAAEtAAAAAAACAQ0AAAAAAAIBKQAAAAAAAgE9AAAAAAAAAQUAAAAAAAIBHQAAAAAAAwFBAAAAAAAAAS0AAAAAAAIBQQAAAAAAAAEpAAAAAAACAS0AAAAAAAIBIQAAAAAAAgFJAAAAAAAAAS0AAAAAAAABLQAAAAAAAAExAAAAAAAAAR0AAAAAAAIBIQAAAAAAAAEVAAAAAAACAREAAAAAAAIBEQAAAAAAAgEhAAAAAAACATkAAAAAAAABOQAAAAAAAwFBAAAAAAAAATUAAAAAAAIBHQAAAAAAAAEpAAAAAAAAAT0AAAAAAAIBMQAAAAAAAAE1AAAAAAAAAUEAAAAAAAIBJQAAAAAAAgEVAAAAAAAAARUAAAAAAAMBQQAAAAAAAAFNAAAAAAACAUUAAAAAAAIBMQAAAAAAAAEZAAAAAAAAATUAAAAAAAABOQAAAAAAAAEZAAAAAAACATkAAAAAAAABFQAAAAAAAAEpAAAAAAACATUAAAAAAAABEQAAAAAAAAEVAAAAAAACATkAAAAAAAIBQQAAAAAAAAEdAAAAAAADAUUAAAAAAAIBNQAAAAAAAAFBAAAAAAACAUEAAAAAAAIBDQAAAAAAAgExAAAAAAAAATUAAAAAAAIBMQAAAAAAAgEdAAAAAAACAS0AAAAAAAIBBQAAAAAAAgE5AAAAAAAAATUAAAAAAAABNQAAAAAAAAE1AAAAAAAAATEAAAAAAAABMQAAAAAAAwFBAAAAAAACAS0AAAAAAAABGQAAAAAAAgE9AAAAAAACAT0AAAAAAAIBEQAAAAAAAgE1AAAAAAACATEAAAAAAAIBGQAAAAAAAAFFAAAAAAACATEAAAAAAAIBMQAAAAAAAAENA"},"y":{"dtype":"f8","bdata":"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"},"type":"scatter"},{"hovertemplate":"\u003cb\u003eYour Age:\u003c\u002fb\u003e %{x} years\u003cbr\u003e\u003cb\u003eYour Cholesterol:\u003c\u002fb\u003e %{y} mg\u002fdl\u003cextra\u003e\u003c\u002fextra\u003e","marker":{"color":"#00d4aa","line":{"color":"white","width":2},"size":15,"symbol":"star"},"mode":"markers","name":"Your Data","x":[30],"y":[180],"type":"scatter"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"title":{"font":{"size":18,"color":"#2c3e50"},"text":"Age vs Cholesterol Analysis","x":0.5,"xanchor":"center"},"font":{"color":"#2c3e50"},"margin":{"l":50,"r":50,"t":80,"b":50},"legend":{"yanchor":"top","y":0.99,"xanchor":"left","x":0.01},"xaxis":{"title":{"text":"Age (years)"}},"yaxis":{"title":{"text":"Cholesterol (mg\u002fdl)"}},"width":600,"height":400,"plot_bgcolor":"rgba(0,0,0,0)","paper_bgcolor":"rgba(0,0,0,0)","showlegend":true},                        {"responsive": true}                    )                };            </script>        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Insights -->
+        <div class="content-section">
+            <h2 class="section-title">
+                <i class="fas fa-lightbulb me-3"></i>Key Insights
+            </h2>
+            
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="metric-card">
+                        <h5><i class="fas fa-exclamation-triangle me-2"></i>Risk Factor Analysis</h5>
+                        <div class="insight-item">
+                            <strong>Age:</strong> Low Risk
+                        </div>
+                        <div class="insight-item">
+                            <strong>Blood Pressure:</strong> Normal
+                        </div>
+                        <div class="insight-item">
+                            <strong>Cholesterol:</strong> Desirable
+                        </div>
+                        <div class="insight-item">
+                            <strong>Vessels Blocked:</strong> No Risk
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="metric-card">
+                        <h5><i class="fas fa-chart-line me-2"></i>Model Performance</h5>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <span class="stat-number">93.4%</span>
+                                <span class="stat-label">Accuracy</span>
+                            </div>
+                            <div class="col-6">
+                                <span class="stat-number">96.5%</span>
+                                <span class="stat-label">ROC-AUC</span>
+                            </div>
+                        </div>
+                        <div class="row text-center mt-3">
+                            <div class="col-6">
+                                <span class="stat-number">90.0%</span>
+                                <span class="stat-label">Precision</span>
+                            </div>
+                            <div class="col-6">
+                                <span class="stat-number">96.4%</span>
+                                <span class="stat-label">Recall</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="content-section" style="background: #f8f9fa;">
+            <h2 class="section-title">
+                <i class="fas fa-clipboard-list me-3"></i>Medical Recommendations
+            </h2>
+            
+            <div class="recommendation-card">
+                <h5><i class="fas fa-user-md me-2"></i>Action Plan</h5>
+                
+                <ul>
+                    <li>Continue maintaining your current healthy lifestyle</li>
+                    <li>Regular exercise (150 minutes moderate activity per week)</li>
+                    <li>Maintain a heart-healthy diet rich in fruits and vegetables</li>
+                    <li>Annual health checkups with your healthcare provider</li>
+                </ul>
+            
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="row">
+                <div class="col-md-8">
+                    <h5><i class="fas fa-shield-alt me-2"></i>Important Notice</h5>
+                    <p class="mb-2">This report is generated by an AI-powered heart disease prediction model for informational purposes only.</p>
+                    <small>Always consult with qualified healthcare professionals for medical advice and treatment decisions.</small>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="mt-3">
+                        <i class="fas fa-robot fa-2x me-2"></i>
+                        <span>AI-Powered Analysis</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Add smooth scrolling and interactive effects
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add hover effects to metric cards
+            const cards = document.querySelectorAll('.metric-card, .chart-container');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-5px)';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+            
+            // Add click effects to risk badge
+            const riskBadge = document.querySelector('.risk-badge');
+            if (riskBadge) {
+                riskBadge.addEventListener('click', function() {
+                    this.style.transform = 'scale(1.1)';
+                    setTimeout(() => {
+                        this.style.transform = 'translateY(-5px)';
+                    }, 200);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+        
