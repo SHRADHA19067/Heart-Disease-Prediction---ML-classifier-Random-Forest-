@@ -95,7 +95,9 @@ These help explain *why* the model predicted a certain risk.
 - Scikit-learn  
 - Pandas  
 - NumPy  
-- Joblib  
+- Joblib
+- matplotlib
+- seaborn
 
 ### 🎨 Frontend
 - HTML  
@@ -103,7 +105,7 @@ These help explain *why* the model predicted a certain risk.
 - Bootstrap  
 
 ### 🗃 Database
-- SQLite (stores user prediction history)
+- JSON
 
 ---
 
